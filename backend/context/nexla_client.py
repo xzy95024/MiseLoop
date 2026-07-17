@@ -61,7 +61,10 @@ class NexlaClient:
     ) -> None:
         load_dotenv()
         self.api_key = api_key or os.getenv("NEXLA_API_KEY")
-        self.base_url = (base_url or os.getenv("NEXLA_API_BASE", "https://api.nexla.io")).rstrip("/")
+        # 实测真实 base（Nexla agent 给的 api.nexla.io 不存在）。
+        self.base_url = (
+            base_url or os.getenv("NEXLA_API_BASE", "https://dataops.nexla.io/nexla-api")
+        ).rstrip("/")
         self.timeout = float(
             timeout_seconds
             if timeout_seconds is not None
@@ -69,7 +72,8 @@ class NexlaClient:
         )
         self.auth_mode = os.getenv("NEXLA_AUTH_MODE", "auto").lower()
         self.token_path = os.getenv("NEXLA_TOKEN_PATH", "/token")
-        self.records_path = os.getenv("NEXLA_RECORDS_PATH", "/v1/data_sets/{id}/records")
+        # 读记录端点：实测为 /data_sets/{id}/samples（不是 /records）。
+        self.records_path = os.getenv("NEXLA_RECORDS_PATH", "/data_sets/{id}/samples")
         if not self.api_key:
             raise NexlaNotConfigured("未设置 NEXLA_API_KEY")
 
@@ -132,8 +136,37 @@ class NexlaClient:
 
         # 记录可能直接是列表，或包裹在 {"items"/"records"/"data"/"samples": [...]} 里。
         if isinstance(data, list):
-            return data
-        for key in ("records", "items", "data", "samples", "output"):
-            if isinstance(data.get(key), list):
-                return data[key]
-        raise NexlaError(f"无法从 Nexla 响应解析记录列表: keys={list(data)[:5]}")
+            records = data
+        else:
+            records = None
+            for key in ("records", "items", "data", "samples", "output"):
+                if isinstance(data.get(key), list):
+                    records = data[key]
+                    break
+            if records is None:
+                raise NexlaError(f"无法从 Nexla 响应解析记录列表: keys={list(data)[:5]}")
+
+        return _dedupe(_unwrap(r) for r in records)
+
+
+def _unwrap(record: dict) -> dict:
+    """解开 Nexla /samples 的信封：真实字段在 input.rawMessage 下。"""
+    if isinstance(record, dict) and isinstance(record.get("input"), dict):
+        raw = record["input"].get("rawMessage")
+        if isinstance(raw, dict):
+            return raw
+    return record
+
+
+def _dedupe(records) -> list[dict]:
+    """按内容去重（/samples 常把同一批记录重复返回）。保序。"""
+    import json as _json
+
+    seen: set[str] = set()
+    out: list[dict] = []
+    for rec in records:
+        key = _json.dumps(rec, sort_keys=True, default=str)
+        if key not in seen:
+            seen.add(key)
+            out.append(rec)
+    return out

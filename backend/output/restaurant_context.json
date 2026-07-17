@@ -1,17 +1,17 @@
 {
-  "generated_at": "2026-07-17T20:13:17.214148+00:00",
+  "generated_at": "2026-07-17T21:06:27.079341+00:00",
   "source_files": [
     "sunny_farm_receipt_0716.pdf",
     "bay_produce_receipts.xlsx"
   ],
   "extraction": {
     "pdf": {
-      "backend": "local_fallback",
-      "note": "未配置 NEXLA_PDF_RESOURCE_ID，直接使用本地抽取"
+      "backend": "nexla",
+      "note": null
     },
     "xlsx": {
-      "backend": "local_fallback",
-      "note": "未配置 NEXLA_XLSX_RESOURCE_ID，直接使用本地抽取"
+      "backend": "nexla",
+      "note": null
     },
     "nexla_timeout_seconds": 60.0
   },
@@ -19,10 +19,10 @@
     {
       "source_file": "sunny_farm_receipt_0716.pdf",
       "source_type": "pdf",
-      "extraction_backend": "local_fallback",
+      "extraction_backend": "nexla",
       "delivery_id": "SF-0716-002",
       "delivery_date": "2026-07-16",
-      "delivered_to": "Healthy Bowl (Downtown)",
+      "delivered_to": null,
       "best_by_date": "2026-07-23",
       "certification": "USDA Organic",
       "supplier": {
@@ -61,10 +61,10 @@
     {
       "source_file": "sunny_farm_receipt_0716.pdf",
       "source_type": "pdf",
-      "extraction_backend": "local_fallback",
+      "extraction_backend": "nexla",
       "delivery_id": "SF-0716-002",
       "delivery_date": "2026-07-16",
-      "delivered_to": "Healthy Bowl (Downtown)",
+      "delivered_to": null,
       "best_by_date": "2026-07-23",
       "certification": "USDA Organic",
       "supplier": {
@@ -103,7 +103,7 @@
     {
       "source_file": "bay_produce_receipts.xlsx",
       "source_type": "xlsx",
-      "extraction_backend": "local_fallback",
+      "extraction_backend": "nexla",
       "delivery_id": "BP-0710-01",
       "delivery_date": "2026-07-10",
       "delivered_to": null,
@@ -120,7 +120,7 @@
         "entity_resolved": true
       },
       "grade": {
-        "raw": 1,
+        "raw": "1",
         "tier": "premium",
         "grade_resolved": true
       },
@@ -145,7 +145,7 @@
     {
       "source_file": "bay_produce_receipts.xlsx",
       "source_type": "xlsx",
-      "extraction_backend": "local_fallback",
+      "extraction_backend": "nexla",
       "delivery_id": "BP-0712-01",
       "delivery_date": "2026-07-12",
       "delivered_to": null,
@@ -162,7 +162,7 @@
         "entity_resolved": true
       },
       "grade": {
-        "raw": 3,
+        "raw": "3",
         "tier": "economy",
         "grade_resolved": true
       },
@@ -187,7 +187,7 @@
     {
       "source_file": "bay_produce_receipts.xlsx",
       "source_type": "xlsx",
-      "extraction_backend": "local_fallback",
+      "extraction_backend": "nexla",
       "delivery_id": "BP-0715-01",
       "delivery_date": "2026-07-15",
       "delivered_to": null,
@@ -204,7 +204,7 @@
         "entity_resolved": true
       },
       "grade": {
-        "raw": 1,
+        "raw": "1",
         "tier": "premium",
         "grade_resolved": true
       },
@@ -227,10 +227,9 @@
       }
     },
     {
-
       "source_file": "bay_produce_receipts.xlsx",
       "source_type": "xlsx",
-      "extraction_backend": "local_fallback",
+      "extraction_backend": "nexla",
       "delivery_id": "BP-0715-02",
       "delivery_date": "2026-07-15",
       "delivered_to": null,
@@ -247,7 +246,7 @@
         "entity_resolved": true
       },
       "grade": {
-        "raw": 2,
+        "raw": "2",
         "tier": "standard",
         "grade_resolved": true
       },

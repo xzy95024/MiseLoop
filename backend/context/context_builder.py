@@ -35,19 +35,28 @@ DEFAULT_XLSX = _REPO_ROOT / "data" / "bay_produce_receipts.xlsx"
 DEFAULT_OUTPUT = _BACKEND / "output" / "restaurant_context.json"
 
 
-def _acquire_rows(pdf_path, xlsx_path) -> tuple[list[dict], str, str | None]:
-    """取原始行：Nexla combined 端点优先（一次调用，受 60s 超时约束），
-    超时/失败/未配置则本地兜底（PDF + Excel 两个 extractor）。
+def _extract_source(
+    *,
+    source_file: str,
+    source_type: str,
+    nexla_resource_env: str,
+    local_extract,
+    default_supplier: str | None = None,
+) -> tuple[list[dict], str, str | None]:
+    """一个数据源的抽取：Nexla 优先（受 60s 超时约束），超时/失败/未配置则本地兜底。
 
-    对应 Nexla flow 的最终产物 —— union 后的 combined Nexset（NEXLA_COMBINED_RESOURCE_ID）。
+    注：实测 combined Nexset(435608) 只含 PDF、数据不全，故直接读两个已归一的分支
+    Nexset(PDF=435601, Excel=435602)再在本地合并，更可靠。
 
     Returns:
-        (raw_rows, backend, note)；backend ∈ {"nexla", "local_fallback"}。
+        (rows, backend, note)；backend ∈ {"nexla", "local_fallback"}。
     """
-    combined_id = os.getenv("NEXLA_COMBINED_RESOURCE_ID")
-    if combined_id:
+    resource_id = os.getenv(nexla_resource_env)
+    if resource_id:
         try:
-            rows = nexla_extractor.extract_combined(combined_id)
+            rows = nexla_extractor.extract(
+                resource_id, source_file, source_type, default_supplier=default_supplier
+            )
             for r in rows:
                 r["extraction_backend"] = "nexla"
             return rows, "nexla", None
@@ -56,9 +65,9 @@ def _acquire_rows(pdf_path, xlsx_path) -> tuple[list[dict], str, str | None]:
         except Exception as e:  # 任何意外也不能拖垮管道
             note = f"Nexla 异常，已回退本地: {e!r}"
     else:
-        note = "未配置 NEXLA_COMBINED_RESOURCE_ID，直接使用本地抽取"
+        note = f"未配置 {nexla_resource_env}，直接使用本地抽取"
 
-    rows = pdf_extractor.extract(pdf_path) + xlsx_extractor.extract(xlsx_path)
+    rows = local_extract()
     for r in rows:
         r["extraction_backend"] = "local_fallback"
     return rows, "local_fallback", note
@@ -125,11 +134,26 @@ def build_context(
 ) -> dict:
     """跑通整条管道，返回（并可选写出）统一后的 context 字典。
 
-    先打 Nexla combined 端点（受 60s 超时约束），超时/失败/未配置则回退本地抽取。
+    每个数据源先打对应的 Nexla 分支 Nexset（受 60s 超时约束），超时/失败/未配置则回退本地。
     """
     load_dotenv()
 
-    raw_rows, backend, note = _acquire_rows(pdf_path, xlsx_path)
+    pdf_rows, pdf_backend, pdf_note = _extract_source(
+        source_file=Path(pdf_path).name,
+        source_type="pdf",
+        nexla_resource_env="NEXLA_PDF_RESOURCE_ID",
+        local_extract=lambda: pdf_extractor.extract(pdf_path),
+    )
+    xlsx_rows, xlsx_backend, xlsx_note = _extract_source(
+        source_file=Path(xlsx_path).name,
+        source_type="xlsx",
+        nexla_resource_env="NEXLA_XLSX_RESOURCE_ID",
+        local_extract=lambda: xlsx_extractor.extract(xlsx_path),
+        # Excel 分支 Nexset 无 supplier 字段，按来源补回（与本地 extractor 一致）。
+        default_supplier="Bay Produce",
+    )
+
+    raw_rows = pdf_rows + xlsx_rows
     line_items = [_unify_row(r) for r in raw_rows]
 
     # 汇总校验：把需要人工介入的问题集中列出。
@@ -159,9 +183,8 @@ def build_context(
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "source_files": [Path(pdf_path).name, Path(xlsx_path).name],
         "extraction": {
-            "backend": backend,
-            "note": note,
-            "combined_resource_id": os.getenv("NEXLA_COMBINED_RESOURCE_ID"),
+            "pdf": {"backend": pdf_backend, "note": pdf_note},
+            "xlsx": {"backend": xlsx_backend, "note": xlsx_note},
             "nexla_timeout_seconds": float(os.getenv("NEXLA_TIMEOUT_SECONDS", "60")),
         },
         "line_items": line_items,
@@ -189,9 +212,10 @@ def main() -> None:
     context = build_context()
     v = context["validation"]
     ex = context["extraction"]
-    print(f"抽取通路: {ex['backend']}  (combined nexset={ex['combined_resource_id']}, Nexla 超时={ex['nexla_timeout_seconds']}s)")
-    if ex["note"]:
-        print(f"  - {ex['note']}")
+    print(f"抽取通路: PDF={ex['pdf']['backend']}  XLSX={ex['xlsx']['backend']}  (Nexla 超时={ex['nexla_timeout_seconds']}s)")
+    for src in ("pdf", "xlsx"):
+        if ex[src]["note"]:
+            print(f"  - {src}: {ex[src]['note']}")
     print(f"抽取 {v['total_line_items']} 条品项 -> {DEFAULT_OUTPUT}")
     print(f"未解析食材:   {v['unresolved_items'] or '无'}")
     print(f"未解析供应商: {v['unresolved_suppliers'] or '无'}")
