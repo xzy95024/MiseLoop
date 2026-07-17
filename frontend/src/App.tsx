@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { DependencyBadges } from "./components/DependencyBadges";
 import { InspectorDrawer } from "./components/InspectorDrawer";
 import { ProgressRail } from "./components/ProgressRail";
 import { Sidebar } from "./components/Sidebar";
@@ -19,6 +20,11 @@ export function App() {
   const [inspectorOpen, setInspectorOpen] = useState(false);
   const stage = demoState.activeStage;
   const copy = STAGE_COPY[stage];
+  const response =
+    demoState.response && typeof demoState.response === "object" && !Array.isArray(demoState.response)
+      ? (demoState.response as { success?: boolean; message?: string; error_code?: string })
+      : null;
+  const apiError = response?.success === false ? response : null;
 
   async function applyApiUpdate(update: (current: typeof demoState) => Promise<typeof demoState>) {
     setIsPending(true);
@@ -85,14 +91,30 @@ export function App() {
             <span className="status phase">{demoState.phase}</span>
             <span className="metric-pill">{demoState.metrics.capabilitiesResolved} capabilities</span>
             <span className="metric-pill">{demoState.metrics.workflowRuns} runs</span>
-            <span className="mode-pill live">Zero live</span>
-            <span className="mode-pill fixture">Nexla fixture</span>
+            <DependencyBadges dependencyMode={demoState.dependencyMode} />
             <span className="metric-pill">api: {demoApi.mode}</span>
             <button className="ghost-button" disabled={isPending} onClick={handleReset} type="button">
               Reset
             </button>
           </div>
         </header>
+
+        {(isPending || apiError) && (
+          <div className={apiError ? "api-banner error" : "api-banner loading"}>
+            <div>
+              <span className={apiError ? "status blocked" : "status approval"}>
+                {apiError ? "API ERROR" : "SYNCING"}
+              </span>
+              <strong>{apiError ? apiError.error_code ?? "Request failed" : "API v3 request in progress"}</strong>
+              <p>{apiError ? apiError.message : "Updating demo state through the API adapter."}</p>
+            </div>
+            {apiError && (
+              <button className="ghost-button" disabled={isPending} onClick={handleReset} type="button">
+                Reset state
+              </button>
+            )}
+          </div>
+        )}
 
         <ProgressRail
           activeStage={stage}

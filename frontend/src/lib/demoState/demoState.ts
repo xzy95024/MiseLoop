@@ -10,6 +10,7 @@ export type DemoPhase =
 export type IntakeId = "files" | "email" | "receipt_photo" | "voice_note";
 export type IntakeStatus = "READY" | "PARSED" | "MAPPED";
 export type SourceStatus = "PARSED" | "MAPPED";
+export type DependencyMode = "live" | "cached" | "fixture";
 
 export type IntakeItem = {
   id: IntakeId;
@@ -173,6 +174,7 @@ export const STAGE_COPY: Record<StageId, { kicker: string; title: string; action
 export type DemoState = {
   phase: DemoPhase;
   activeStage: StageId;
+  dependencyMode: Partial<Record<"nexla" | "zero" | "workflow_generator", DependencyMode>>;
   intakeItems: IntakeItem[];
   rawInputs: RawInputPreview[];
   sourceCards: SourceCard[];
@@ -701,6 +703,7 @@ export function createInitialDemoState(): DemoState {
   return {
     phase: "EMPTY",
     activeStage: "connect",
+    dependencyMode: { nexla: "fixture", zero: "live", workflow_generator: "fixture" },
     intakeItems: INITIAL_INTAKE_ITEMS,
     rawInputs: [],
     sourceCards: [],

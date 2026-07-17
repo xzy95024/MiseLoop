@@ -9,23 +9,12 @@ import {
   type IntakeUploadPayload,
 } from "../demoState/demoState";
 import { apiRequest } from "./client";
+import { mapDashboardToDemoState } from "./dashboardMapper";
 import type { ApiEnvelope, DashboardResponse, DemoApi } from "./contracts";
 
 async function refreshDashboard(fallbackState: DemoState): Promise<DemoState> {
   const dashboard = await apiRequest<DashboardResponse>("/api/dashboard");
-
-  return {
-    ...fallbackState,
-    contextVersion: dashboard.data.context?.version ?? fallbackState.contextVersion,
-    metrics: {
-      capabilitiesResolved: dashboard.data.metrics.capabilities_resolved,
-      workflowRuns: dashboard.data.metrics.workflow_runs,
-      selfCorrections: dashboard.data.metrics.self_corrections,
-      estimatedCostSavings: dashboard.data.metrics.estimated_cost_savings,
-    },
-    responseTitle: "GET /api/dashboard",
-    response: dashboard,
-  };
+  return mapDashboardToDemoState(fallbackState, dashboard);
 }
 
 function createBuildContextBody(state: DemoState) {

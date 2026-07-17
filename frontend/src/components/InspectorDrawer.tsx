@@ -1,3 +1,4 @@
+import { DependencyBadges } from "./DependencyBadges";
 import type { DemoState } from "../lib/demoState/demoState";
 
 type InspectorDrawerProps = {
@@ -34,8 +35,7 @@ export function InspectorDrawer({ demoState, isOpen, onToggle }: InspectorDrawer
         <section>
           <span className="summary-label">Dependency mode</span>
           <div className="mode-stack">
-            <span className="mode-pill live">Zero live</span>
-            <span className="mode-pill fixture">Nexla fixture</span>
+            <DependencyBadges dependencyMode={demoState.dependencyMode} />
           </div>
         </section>
 
