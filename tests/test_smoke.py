@@ -61,7 +61,17 @@ def test_api_shell_demo_flow():
         json={"context_version": "ctx_v001", "run_mode": "demo"},
     )
     assert run.status_code == 200
-    assert run.json()["data"]["status"] == "COMPLETED_WITH_RECOMMENDATION"
+    run_body = run.json()
+    assert run_body["data"]["status"] == "COMPLETED_WITH_RECOMMENDATION"
+    assert [item["step_id"] for item in run_body["data"]["timeline"]] == [
+        "load_context",
+        "check_weather",
+        "check_events",
+        "rank_suppliers",
+        "patch_purchase_plan",
+    ]
+    assert run_body["data"]["timeline"][-1]["status"] == "PENDING_APPROVAL"
+    assert run_body["meta"]["dependency_mode"]["workflow_runner"] == "fixture"
 
     update = client.post(
         "/api/context/update",

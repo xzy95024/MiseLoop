@@ -112,7 +112,7 @@ def run_workflow(workflow_id: str, body: dict[str, Any]) -> dict[str, Any]:
         message="Workflow completed with manager approval required.",
         data=data,
         request_prefix="req_workflow_run",
-        dependency_mode={"zero": "fixture", "nexla": "fixture"},
+        dependency_mode=data.get("dependency_mode", {"workflow_runner": "fixture"}),
         context_version=body.get("context_version"),
     )
 

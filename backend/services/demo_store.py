@@ -14,74 +14,11 @@ from uuid import uuid4
 
 from .nexla_context_provider import NexlaContextProvider
 from .workflow_generator import DEFAULT_WORKFLOW_ID, DeterministicWorkflowGenerator
+from .workflow_runner import RECOMMENDATION, WorkflowRunner
 from .zero_capability_provider import ZeroCapabilityProvider
 
 
 DependencyMode = dict[str, str]
-
-
-RUN_TIMELINE = [
-    {
-        "step_id": "load_context",
-        "status": "COMPLETED",
-        "summary": "Restaurant Context loaded from Nexla provider.",
-        "evidence": "ctx_v001",
-    },
-    {
-        "step_id": "check_weather",
-        "status": "COMPLETED",
-        "summary": "Rain probability is 82% for Saturday.",
-        "evidence": "zero_weather_001",
-    },
-    {
-        "step_id": "check_events",
-        "status": "COMPLETED",
-        "summary": "Nearby event increases expected foot traffic by 18%.",
-        "evidence": "zero_events_001",
-    },
-    {
-        "step_id": "rank_suppliers",
-        "status": "COMPLETED",
-        "summary": "Supplier B is ranked first for tomatoes.",
-        "evidence": "price 0.45, delivery 0.25, reliability 0.20",
-    },
-    {
-        "step_id": "patch_purchase_plan",
-        "status": "PENDING_APPROVAL",
-        "summary": "Recommendation created. External write remains gated.",
-        "evidence": "manager approval required",
-    },
-]
-
-
-RECOMMENDATION = {
-    "title": "Weekend purchase plan",
-    "summary": "Increase indoor comfort items, reduce patio-heavy prep, and switch tomato supplier.",
-    "requires_approval": True,
-    "approval_status": "PENDING_APPROVAL",
-    "expected_impact": {
-        "stockout_risk_reduction": 0.22,
-        "estimated_cost_savings": 143.50,
-        "prep_waste_reduction": 0.12,
-    },
-    "plan_items": [
-        {
-            "item": "Tomatoes",
-            "action": "Use Supplier B",
-            "reason": "Supplier B has better weekend price and reliability.",
-        },
-        {
-            "item": "Patio garnish",
-            "action": "Reduce prep by 18%",
-            "reason": "Rain probability is 82%, lowering patio-heavy demand.",
-        },
-        {
-            "item": "Indoor comfort items",
-            "action": "Increase prep by 12%",
-            "reason": "Local event traffic plus rain shifts demand indoors.",
-        },
-    ],
-}
 
 
 CONTEXT_DIFF = [
@@ -172,6 +109,7 @@ class DemoStore:
     def __init__(self) -> None:
         self.nexla_context_provider = NexlaContextProvider()
         self.workflow_generator = DeterministicWorkflowGenerator()
+        self.workflow_runner = WorkflowRunner()
         self.zero_capability_provider = ZeroCapabilityProvider()
         self.state = self._initial_state()
 
@@ -246,20 +184,23 @@ class DemoStore:
         return resolved
 
     def run_workflow(self, workflow_id: str) -> dict[str, Any]:
+        result = self.workflow_runner.run(
+            workflow_id=workflow_id,
+            workflow=self.state.get("workflow") or {},
+            context_version=self.state["context"].get("version"),
+            bound_capabilities=self.state["bound_capabilities"],
+        )
         self.state["workflow_id"] = workflow_id
-        self.state["workflow_status"] = "COMPLETED_WITH_RECOMMENDATION"
-        self.state["run_id"] = "run_001"
-        self.state["timeline"] = deepcopy(RUN_TIMELINE)
-        self.state["recommendation"] = deepcopy(RECOMMENDATION)
+        self.state["workflow_status"] = result["status"]
+        self.state["run_id"] = result["run_id"]
+        self.state["timeline"] = deepcopy(result["timeline"])
+        self.state["recommendation"] = deepcopy(result["recommendation"])
         self.state["metrics"]["workflow_runs"] = max(self.state["metrics"]["workflow_runs"], 1)
-        self.state["metrics"]["estimated_cost_savings"] = 143.50
-        return {
-            "workflow_id": workflow_id,
-            "run_id": "run_001",
-            "status": "COMPLETED_WITH_RECOMMENDATION",
-            "timeline": deepcopy(RUN_TIMELINE),
-            "recommendation": deepcopy(RECOMMENDATION),
-        }
+        self.state["metrics"]["estimated_cost_savings"] = result["recommendation"][
+            "expected_impact"
+        ]["estimated_cost_savings"]
+        self.state["dependency_mode"].update(result["dependency_mode"])
+        return result
 
     def update_context(self) -> dict[str, Any]:
         self.state["context"]["version"] = "ctx_v002"
@@ -296,6 +237,7 @@ class DemoStore:
                 "nexla": "fixture",
                 "zero": "fixture",
                 "workflow_generator": "fixture",
+                "workflow_runner": "fixture",
             },
             "context": {
                 "context_id": None,
