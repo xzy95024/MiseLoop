@@ -2,7 +2,19 @@
   "permissions": {
     "allow": [
       "Bash(mkdir -p docs/agent_generator docs/workflow docs/tools docs/recommendations)",
-      "Bash(touch docs/README.md docs/architecture.md docs/fastapi_backend.md docs/agent_generator/README.md docs/agent_generator/llm_provider.md docs/agent_generator/gemini.md docs/agent_generator/openai.md docs/agent_generator/claude.md docs/workflow/validator.md docs/workflow/registry.md docs/workflow/executor.md docs/tools/README.md docs/tools/builtin_mock_tools.md docs/tools/zero_tool_discovery_adapter.md docs/recommendations/README.md docs/recommendations/inventory.md docs/recommendations/supplier.md docs/recommendations/purchase_plan.md)"
+      "Bash(touch docs/README.md docs/architecture.md docs/fastapi_backend.md docs/agent_generator/README.md docs/agent_generator/llm_provider.md docs/agent_generator/gemini.md docs/agent_generator/openai.md docs/agent_generator/claude.md docs/workflow/validator.md docs/workflow/registry.md docs/workflow/executor.md docs/tools/README.md docs/tools/builtin_mock_tools.md docs/tools/zero_tool_discovery_adapter.md docs/recommendations/README.md docs/recommendations/inventory.md docs/recommendations/supplier.md docs/recommendations/purchase_plan.md)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(git add *)",
+      "Bash(git remote *)",
+      "Bash(git ls-remote *)",
+      "Bash(git fetch *)",
+      "Bash(./venv/bin/python -c \"import pdfplumber, pandas, openpyxl; print\\('pdfplumber', pdfplumber.__version__\\); print\\('pandas', pandas.__version__\\); print\\('openpyxl', openpyxl.__version__\\)\")",
+      "Bash(./venv/bin/python -m pip install pdfplumber pandas openpyxl)",
+      "Bash(./venv/bin/python *)",
+      "WebFetch(domain:docs.nexla.com)",
+      "WebSearch",
+      "Bash(NEXLA_PDF_RESOURCE_ID=demo-123 NEXLA_XLSX_RESOURCE_ID=demo-456 NEXLA_TIMEOUT_SECONDS=15 time ./venv/bin/python -m backend.context.context_builder)"
     ]
   }
 }
