@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p docs/agent_generator docs/workflow docs/tools docs/recommendations)",
+      "Bash(touch docs/README.md docs/architecture.md docs/fastapi_backend.md docs/agent_generator/README.md docs/agent_generator/llm_provider.md docs/agent_generator/gemini.md docs/agent_generator/openai.md docs/agent_generator/claude.md docs/workflow/validator.md docs/workflow/registry.md docs/workflow/executor.md docs/tools/README.md docs/tools/builtin_mock_tools.md docs/tools/zero_tool_discovery_adapter.md docs/recommendations/README.md docs/recommendations/inventory.md docs/recommendations/supplier.md docs/recommendations/purchase_plan.md)"
+    ]
+  }
+}
