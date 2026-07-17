@@ -15,6 +15,7 @@ type StageCanvasProps = {
   demoState: DemoState;
   kicker: string;
   onIntakeSample: (intakeId: IntakeId) => void;
+  onOwnerGoalChange: (ownerGoal: string) => void;
   onPrimaryAction: () => void;
   stage: StageId;
   title: string;
@@ -25,6 +26,7 @@ export function StageCanvas({
   demoState,
   kicker,
   onIntakeSample,
+  onOwnerGoalChange,
   onPrimaryAction,
   stage,
   title,
@@ -47,7 +49,9 @@ export function StageCanvas({
       </div>
 
       {stage === "connect" && <ConnectView demoState={demoState} onIntakeSample={onIntakeSample} />}
-      {stage === "generate" && <GenerateView phase={demoState.phase} />}
+      {stage === "generate" && (
+        <GenerateView demoState={demoState} onOwnerGoalChange={onOwnerGoalChange} />
+      )}
       {stage === "resolve" && <ResolveView phase={demoState.phase} />}
       {stage === "run" && <RunView phase={demoState.phase} />}
       {stage === "learn" && <LearnView demoState={demoState} />}

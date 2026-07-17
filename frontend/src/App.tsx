@@ -13,6 +13,7 @@ import {
   STAGE_COPY,
   type IntakeId,
   type StageId,
+  updateOwnerGoal,
 } from "./lib/demoState/demoState";
 
 export function App() {
@@ -31,6 +32,10 @@ export function App() {
 
   function handleIntakeSample(intakeId: IntakeId) {
     setDemoState((current) => addIntakeSource(current, intakeId));
+  }
+
+  function handleOwnerGoalChange(ownerGoal: string) {
+    setDemoState((current) => updateOwnerGoal(current, ownerGoal));
   }
 
   function handleReset() {
@@ -72,6 +77,7 @@ export function App() {
             demoState={demoState}
             kicker={copy.kicker}
             onIntakeSample={handleIntakeSample}
+            onOwnerGoalChange={handleOwnerGoalChange}
             onPrimaryAction={handlePrimaryAction}
             stage={stage}
             title={copy.title}
