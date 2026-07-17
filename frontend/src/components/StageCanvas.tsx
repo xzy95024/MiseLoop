@@ -52,7 +52,7 @@ export function StageCanvas({
       {stage === "generate" && (
         <GenerateView demoState={demoState} onOwnerGoalChange={onOwnerGoalChange} />
       )}
-      {stage === "resolve" && <ResolveView phase={demoState.phase} />}
+      {stage === "resolve" && <ResolveView demoState={demoState} />}
       {stage === "run" && <RunView phase={demoState.phase} />}
       {stage === "learn" && <LearnView demoState={demoState} />}
     </section>

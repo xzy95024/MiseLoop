@@ -737,6 +737,79 @@ p {
   border-radius: 13px;
 }
 
+.resolve-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(300px, 0.95fr);
+  gap: 14px;
+}
+
+.resolve-hero {
+  grid-column: 1 / -1;
+}
+
+.zero-timeline-panel,
+.capability-detail-panel {
+  padding: 18px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(82, 55, 32, 0.05);
+}
+
+.zero-timeline {
+  display: grid;
+  gap: 10px;
+}
+
+.zero-event {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px;
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.zero-event.passed {
+  border-color: rgba(79, 125, 74, 0.24);
+  background: linear-gradient(180deg, #fff, var(--green-soft));
+}
+
+.zero-dot {
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  border-radius: 999px;
+  background: var(--orange);
+  box-shadow: 0 0 0 5px var(--orange-soft);
+}
+
+.zero-event.passed .zero-dot {
+  background: var(--green);
+  box-shadow: 0 0 0 5px var(--green-soft);
+}
+
+.zero-event-top,
+.capability-detail-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.zero-event p {
+  margin: 6px 0 2px;
+  font-size: 13px;
+}
+
+.zero-event small {
+  color: var(--faint);
+  font-size: 11px;
+  font-weight: 760;
+  text-transform: uppercase;
+}
+
 .blocked-banner p {
   max-width: 430px;
   margin-bottom: 0;
@@ -745,7 +818,7 @@ p {
 .resolve-grid {
   display: grid;
   gap: 12px;
-  margin-top: 16px;
+  align-self: start;
 }
 
 .capability-row {
@@ -759,6 +832,31 @@ p {
 
 .capability-row p {
   margin-bottom: 0;
+}
+
+.capability-detail-panel {
+  grid-column: 1 / -1;
+}
+
+.capability-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.capability-detail {
+  min-width: 0;
+  padding: 14px;
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.schema-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
 }
 
 .run-panel {
@@ -946,14 +1044,19 @@ pre {
   .content-grid,
   .content-grid.inspector-open,
   .run-panel,
-  .generate-layout {
+  .generate-layout,
+  .resolve-layout,
+  .capability-detail-grid,
+  .schema-grid {
     grid-template-columns: 1fr;
   }
 
   .generate-layout .goal-box,
   .workflow-preview,
   .missing-panel,
-  .json-preview {
+  .json-preview,
+  .resolve-hero,
+  .capability-detail-panel {
     grid-column: auto;
   }
 
