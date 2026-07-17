@@ -1,0 +1,13 @@
+[project]
+name = "miseloop"
+version = "0.1.0"
+description = "MiseLoop — the autonomous decision layer for restaurant supply chain and operations."
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
