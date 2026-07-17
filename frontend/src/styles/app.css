@@ -1029,6 +1029,149 @@ p {
   gap: 14px;
 }
 
+.learn-layout {
+  display: grid;
+  gap: 14px;
+}
+
+.learn-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 180px;
+  gap: 18px;
+  padding: 20px;
+  background: linear-gradient(135deg, #fff, var(--green-soft));
+  border: 1px solid rgba(79, 125, 74, 0.22);
+  border-radius: 13px;
+}
+
+.learn-hero h3 {
+  margin-top: 12px;
+  font-size: 24px;
+}
+
+.learn-hero p {
+  max-width: 720px;
+  margin-bottom: 0;
+}
+
+.learn-version-card {
+  display: grid;
+  gap: 6px;
+  align-self: stretch;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.correction-rail {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.correction-step {
+  min-height: 130px;
+  padding: 14px;
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.correction-step.complete {
+  background: linear-gradient(180deg, #fff, var(--green-soft));
+  border-color: rgba(79, 125, 74, 0.24);
+}
+
+.correction-step span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 26px;
+  color: var(--orange);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.correction-step strong {
+  display: block;
+  margin-top: 12px;
+}
+
+.correction-step p {
+  margin: 6px 0 0;
+  font-size: 13px;
+}
+
+.diff-section {
+  padding: 18px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(82, 55, 32, 0.05);
+}
+
+.context-diff-list,
+.recommendation-diff-list {
+  display: grid;
+  gap: 10px;
+}
+
+.context-diff-item,
+.recommendation-diff-item {
+  padding: 14px;
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.diff-values {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0;
+}
+
+.diff-values strong {
+  padding: 8px 10px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.diff-values span {
+  color: var(--orange);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.context-diff-item p,
+.recommendation-diff-item p {
+  margin-bottom: 0;
+  font-size: 13px;
+}
+
+.diff-view.compact {
+  margin: 10px 0;
+}
+
+.diff-view.compact .diff-column {
+  padding: 14px;
+}
+
+.diff-view.compact h3 {
+  margin-bottom: 0;
+}
+
+.learn-summary {
+  margin-top: 0;
+}
+
 .diff-column {
   padding: 20px;
 }
@@ -1134,6 +1277,8 @@ pre {
   .run-panel,
   .generate-layout,
   .resolve-layout,
+  .learn-hero,
+  .correction-rail,
   .capability-detail-grid,
   .schema-grid {
     grid-template-columns: 1fr;
