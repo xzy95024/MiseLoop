@@ -1,0 +1,50 @@
+{
+  "capabilities": [
+    {
+      "name": "weather_forecast",
+      "provider": "fixture",
+      "capability_id": "zero_weather_001",
+      "title": "Weather Forecast",
+      "description": "Returns weather forecast signals for a location and date.",
+      "confidence": 0.97,
+      "input_schema": {
+        "location": "string",
+        "date": "string"
+      },
+      "output_schema": {
+        "rain_probability": "number",
+        "temperature_f": "number"
+      },
+      "sample_input": {
+        "location": "San Francisco",
+        "date": "2026-07-18"
+      },
+      "sample_output": {
+        "rain_probability": 82,
+        "temperature_f": 58
+      }
+    },
+    {
+      "name": "local_event_calendar",
+      "provider": "fixture",
+      "capability_id": "zero_events_001",
+      "title": "Local Event Calendar",
+      "description": "Returns expected local foot-traffic lift for a weekend.",
+      "confidence": 0.94,
+      "input_schema": {
+        "location": "string",
+        "weekend": "boolean"
+      },
+      "output_schema": {
+        "expected_foot_traffic_lift": "number"
+      },
+      "sample_input": {
+        "location": "San Francisco",
+        "weekend": true
+      },
+      "sample_output": {
+        "expected_foot_traffic_lift": 0.18
+      }
+    }
+  ]
+}

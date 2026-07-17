@@ -88,7 +88,7 @@ def generate_agent(body: dict[str, Any]) -> dict[str, Any]:
         message="Workflow generated and blocked by missing capabilities.",
         data=data,
         request_prefix="req_agents_generate",
-        dependency_mode={"workflow_generator": "fixture", "nexla": "fixture"},
+        dependency_mode=data.get("dependency_mode", {"workflow_generator": "fixture"}),
         context_version=body.get("context_id"),
     )
 
@@ -100,7 +100,7 @@ def resolve_capabilities(workflow_id: str, _: dict[str, Any]) -> dict[str, Any]:
         message="Workflow capability resolution completed.",
         data=data,
         request_prefix="req_resolve_capabilities",
-        dependency_mode={"zero": "fixture"},
+        dependency_mode=data.get("dependency_mode", {"zero": "fixture"}),
         context_version=demo_store.dashboard()["context"].get("version"),
     )
 

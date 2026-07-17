@@ -13,64 +13,11 @@ from typing import Any
 from uuid import uuid4
 
 from .nexla_context_provider import NexlaContextProvider
+from .workflow_generator import DEFAULT_WORKFLOW_ID, DeterministicWorkflowGenerator
+from .zero_capability_provider import ZeroCapabilityProvider
 
 
 DependencyMode = dict[str, str]
-
-
-DEFAULT_WORKFLOW_ID = "wf_weekend_prep_001"
-DEFAULT_CONTEXT_ID = "ctx_001"
-
-
-WORKFLOW = {
-    "id": "weekend-prep-agent",
-    "name": "Weekend Prep Agent",
-    "trigger": {"type": "manual_or_schedule", "value": "Every Friday 9 AM"},
-    "conditions": [
-        {"field": "external.weather.rain_probability", "operator": ">", "value": 70}
-    ],
-    "required_capabilities": [
-        {"name": "weather_forecast", "reason": "Rain changes patio demand"},
-        {"name": "local_event_calendar", "reason": "Nearby events change weekend demand"},
-    ],
-    "steps": [
-        {"id": "load_context", "type": "context", "source": "nexla.restaurant_context"},
-        {"id": "check_weather", "type": "capability", "capability": "weather_forecast"},
-        {"id": "check_events", "type": "capability", "capability": "local_event_calendar"},
-        {"id": "rank_suppliers", "type": "decision", "action": "rank_suppliers"},
-        {
-            "id": "patch_purchase_plan",
-            "type": "recommendation",
-            "requires_approval": True,
-        },
-    ],
-    "approval_policy": {
-        "external_write": "manager_approval_required",
-        "purchase_order": "recommendation_only",
-    },
-}
-
-
-ZERO_RESOLUTION_EVENTS = [
-    {
-        "capability": "weather_forecast",
-        "provider": "zero",
-        "capability_id": "zero_weather_001",
-        "validation_status": "PASSED",
-        "sample_output": {"rain_probability": 82, "temperature_f": 58},
-        "input_schema": {"location": "string", "date": "string"},
-        "output_schema": {"rain_probability": "number", "temperature_f": "number"},
-    },
-    {
-        "capability": "local_event_calendar",
-        "provider": "zero",
-        "capability_id": "zero_events_001",
-        "validation_status": "PASSED",
-        "sample_output": {"expected_foot_traffic_lift": 0.18},
-        "input_schema": {"location": "string", "weekend": "boolean"},
-        "output_schema": {"expected_foot_traffic_lift": "number"},
-    },
-]
 
 
 RUN_TIMELINE = [
@@ -224,6 +171,8 @@ def envelope(
 class DemoStore:
     def __init__(self) -> None:
         self.nexla_context_provider = NexlaContextProvider()
+        self.workflow_generator = DeterministicWorkflowGenerator()
+        self.zero_capability_provider = ZeroCapabilityProvider()
         self.state = self._initial_state()
 
     def reset(self) -> dict[str, Any]:
@@ -262,44 +211,39 @@ class DemoStore:
         return context_data
 
     def generate_workflow(self, body: dict[str, Any]) -> dict[str, Any]:
-        self.state["workflow_id"] = DEFAULT_WORKFLOW_ID
+        generated = self.workflow_generator.generate(body)
+        self.state["workflow_id"] = generated["workflow_id"]
         self.state["workflow_status"] = "BLOCKED"
-        self.state["missing_capabilities"] = ["weather_forecast", "local_event_calendar"]
-        self.state["dependency_mode"]["workflow_generator"] = "fixture"
-        return {
-            "workflow_id": DEFAULT_WORKFLOW_ID,
-            "status": "BLOCKED",
-            "owner_goal": body.get("owner_goal", "Create a weekend prep agent for this Friday"),
-            "workflow": deepcopy(WORKFLOW),
-            "missing_capabilities": deepcopy(self.state["missing_capabilities"]),
-        }
+        self.state["workflow"] = deepcopy(generated["workflow"])
+        self.state["missing_capabilities"] = deepcopy(generated["missing_capabilities"])
+        self.state["dependency_mode"].update(generated["dependency_mode"])
+        return generated
 
     def resolve_capabilities(self, workflow_id: str) -> dict[str, Any]:
-        bound = [
-            {
-                "name": event["capability"],
-                "provider": event["provider"],
-                "capability_id": event["capability_id"],
-                "input_schema": event["input_schema"],
-                "output_schema": event["output_schema"],
-                "validation_status": event["validation_status"],
-                "sample_result": event["sample_output"],
-            }
-            for event in ZERO_RESOLUTION_EVENTS
-        ]
+        workflow = self.state.get("workflow") or {}
+        requirements = workflow.get("required_capabilities") or self.state["missing_capabilities"]
+        resolved = self.zero_capability_provider.resolve_workflow(
+            workflow_id,
+            workflow,
+            requirements,
+        )
+        bound = resolved["bound_capabilities"]
         self.state["workflow_id"] = workflow_id
-        self.state["workflow_status"] = "READY"
-        self.state["missing_capabilities"] = []
+        self.state["workflow_status"] = resolved["status_after"]
+        self.state["workflow"] = resolved["bound_workflow"]
+        self.state["missing_capabilities"] = (
+            []
+            if resolved["status_after"] == "READY"
+            else [
+                event["capability"]
+                for event in resolved["resolution_events"]
+                if event["validation_status"] != "PASSED"
+            ]
+        )
         self.state["bound_capabilities"] = bound
         self.state["metrics"]["capabilities_resolved"] = len(bound)
-        self.state["dependency_mode"]["zero"] = "fixture"
-        return {
-            "workflow_id": workflow_id,
-            "status_before": "BLOCKED",
-            "status_after": "READY",
-            "resolution_events": deepcopy(ZERO_RESOLUTION_EVENTS),
-            "bound_capabilities": deepcopy(bound),
-        }
+        self.state["dependency_mode"].update(resolved["dependency_mode"])
+        return resolved
 
     def run_workflow(self, workflow_id: str) -> dict[str, Any]:
         self.state["workflow_id"] = workflow_id
@@ -360,6 +304,7 @@ class DemoStore:
                 "last_diff": [],
             },
             "workflow_id": None,
+            "workflow": None,
             "workflow_status": "EMPTY",
             "missing_capabilities": [],
             "bound_capabilities": [],
@@ -379,30 +324,5 @@ class DemoStore:
             {"type": "inventory", "source_id": "inventory_current"},
             {"type": "supplier_prices", "source_id": "supplier_prices_q3"},
         ]
-
-    def _source_card(self, source: dict[str, Any]) -> dict[str, Any]:
-        source_type = source.get("type", "unknown")
-        mapped_fields = {
-            "sales": 8,
-            "inventory": 7,
-            "supplier_prices": 6,
-            "manager_notes": 3,
-            "purchase_history": 4,
-        }.get(source_type, 1)
-        normalized_fields = {
-            "sales": "sales.by_day, sales.by_item",
-            "inventory": "inventory.on_hand, reorder_threshold",
-            "supplier_prices": "supplier_price.by_item",
-            "manager_notes": "constraints.manager_notes",
-            "purchase_history": "purchase_history.by_item",
-        }
-        return {
-            "type": source_type,
-            "source_id": source.get("source_id", source_type),
-            "status": "MAPPED",
-            "mapped_fields": mapped_fields,
-            "normalized_context_field": normalized_fields.get(source_type, source_type),
-        }
-
 
 demo_store = DemoStore()

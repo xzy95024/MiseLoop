@@ -36,14 +36,25 @@ def test_api_shell_demo_flow():
         },
     )
     assert generate.status_code == 200
-    assert generate.json()["data"]["status"] == "BLOCKED"
+    generate_body = generate.json()
+    assert generate_body["data"]["status"] == "BLOCKED"
+    assert generate_body["data"]["workflow"]["id"] == "weekend-prep-agent"
+    assert generate_body["data"]["missing_capabilities"] == [
+        "weather_forecast",
+        "local_event_calendar",
+    ]
+    assert generate_body["meta"]["dependency_mode"]["workflow_generator"] == "fixture"
 
     resolve = client.post(
         "/api/workflows/wf_weekend_prep_001/resolve-capabilities",
         json={"mode": "auto", "allow_fixture_fallback": True},
     )
     assert resolve.status_code == 200
-    assert resolve.json()["data"]["status_after"] == "READY"
+    resolve_body = resolve.json()
+    assert resolve_body["data"]["status_after"] == "READY"
+    assert resolve_body["data"]["resolution_events"][0]["source"] == "zero_capabilities.json"
+    assert resolve_body["data"]["bound_capabilities"][0]["provider"] == "fixture"
+    assert resolve_body["meta"]["dependency_mode"]["zero"] == "fixture"
 
     run = client.post(
         "/api/workflows/wf_weekend_prep_001/run",
