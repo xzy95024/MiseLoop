@@ -11,6 +11,18 @@ export function GenerateView({ demoState, onOwnerGoalChange }: GenerateViewProps
   const missingCapabilityNames = demoState.workflowPreview.requiredCapabilities.map(
     (capability) => capability.name,
   );
+  const workflowJsonShape =
+    demoState.workflowJsonPreview && typeof demoState.workflowJsonPreview === "object"
+      ? { ...demoState.workflowJsonPreview, owner_goal: demoState.ownerGoal }
+      : {
+          owner_goal: demoState.ownerGoal,
+          workflow: {
+            id: demoState.workflowPreview.id,
+            trigger: demoState.workflowPreview.trigger,
+            required_capabilities: demoState.workflowPreview.requiredCapabilities,
+            approval_policy: demoState.workflowPreview.approvalPolicy,
+          },
+        };
 
   return (
     <div className="stage-panel active generate-layout">
@@ -103,19 +115,7 @@ export function GenerateView({ demoState, onOwnerGoalChange }: GenerateViewProps
       <section className="json-preview">
         <span className="summary-label">Workflow JSON shape</span>
         <pre>
-          {JSON.stringify(
-            {
-              owner_goal: demoState.ownerGoal,
-              workflow: {
-                id: demoState.workflowPreview.id,
-                trigger: demoState.workflowPreview.trigger,
-                required_capabilities: demoState.workflowPreview.requiredCapabilities,
-                approval_policy: demoState.workflowPreview.approvalPolicy,
-              },
-            },
-            null,
-            2,
-          )}
+          {JSON.stringify(workflowJsonShape, null, 2)}
         </pre>
       </section>
     </div>

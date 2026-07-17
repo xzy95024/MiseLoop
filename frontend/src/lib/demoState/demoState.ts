@@ -204,6 +204,7 @@ export type DemoState = {
   sourceCards: SourceCard[];
   restaurantContextPreview: ContextPreviewSection[];
   ownerGoal: string;
+  workflowJsonPreview?: unknown;
   workflowPreview: WorkflowPreview;
   zeroResolutionEvents: ZeroResolutionEvent[];
   runTimeline: RunTimelineItem[];
@@ -486,6 +487,315 @@ export const DEFAULT_WORKFLOW_PREVIEW: WorkflowPreview = {
     purchaseOrder: "recommendation_only",
   },
 };
+const FALLBACK_WORKFLOW_JSON_PREVIEW = {
+    "owner_goal":  "Create a weekend prep agent for this Friday",
+    "workflow":  {
+                     "id":  "weekend-prep-agent",
+                     "trigger":  "Every Friday 9 AM",
+                     "required_capabilities":  [
+                                                   {
+                                                       "name":  "weather_forecast",
+                                                       "reason":  "Rain changes patio demand"
+                                                   },
+                                                   {
+                                                       "name":  "local_event_calendar",
+                                                       "reason":  "Nearby events change weekend demand"
+                                                   }
+                                               ],
+                     "approval_policy":  {
+                                             "externalWrite":  "manager_approval_required",
+                                             "purchaseOrder":  "recommendation_only"
+                                         }
+                 },
+    "supply_data":  {
+                        "generated_at":  "2026-07-17T22:39:48.180916+00:00",
+                        "source_files":  [
+                                             "sunny_farm_receipt_0716.pdf",
+                                             "bay_produce_receipts.xlsx"
+                                         ],
+                        "extraction":  {
+                                           "pdf":  {
+                                                       "backend":  "nexla",
+                                                       "note":  null
+                                                   },
+                                           "xlsx":  {
+                                                        "backend":  "nexla",
+                                                        "note":  null
+                                                    },
+                                           "nexla_timeout_seconds":  60.0
+                                       },
+                        "line_items":  [
+                                           {
+                                               "source_file":  "sunny_farm_receipt_0716.pdf",
+                                               "source_type":  "pdf",
+                                               "extraction_backend":  "nexla",
+                                               "delivery_id":  "SF-0716-002",
+                                               "delivery_date":  "2026-07-16",
+                                               "delivered_to":  null,
+                                               "best_by_date":  "2026-07-23",
+                                               "certification":  "USDA Organic",
+                                               "supplier":  {
+                                                                "raw":  "SUNNY FARM ORGANIC PRODUCE",
+                                                                "canonical":  "Sunny Farm",
+                                                                "entity_resolved":  true
+                                                            },
+                                               "item":  {
+                                                            "raw":  "Nordic Fjord King Salmon",
+                                                            "canonical":  "salmon",
+                                                            "entity_resolved":  true
+                                                        },
+                                               "grade":  {
+                                                             "raw":  "A",
+                                                             "tier":  "premium",
+                                                             "grade_resolved":  true
+                                                         },
+                                               "quantity":  {
+                                                                "kg":  10.0,
+                                                                "raw_value":  10.0,
+                                                                "raw_unit":  "kg"
+                                                            },
+                                               "unit_price":  {
+                                                                  "per_kg":  21.0,
+                                                                  "raw_value":  21.0,
+                                                                  "raw_unit":  "kg",
+                                                                  "currency":  "USD"
+                                                              },
+                                               "subtotal":  210.0,
+                                               "source_total":  210.0,
+                                               "checks":  {
+                                                              "subtotal_consistent":  true,
+                                                              "total_matches_source":  true
+                                                          }
+                                           },
+                                           {
+                                               "source_file":  "sunny_farm_receipt_0716.pdf",
+                                               "source_type":  "pdf",
+                                               "extraction_backend":  "nexla",
+                                               "delivery_id":  "SF-0716-002",
+                                               "delivery_date":  "2026-07-16",
+                                               "delivered_to":  null,
+                                               "best_by_date":  "2026-07-23",
+                                               "certification":  "USDA Organic",
+                                               "supplier":  {
+                                                                "raw":  "SUNNY FARM ORGANIC PRODUCE",
+                                                                "canonical":  "Sunny Farm",
+                                                                "entity_resolved":  true
+                                                            },
+                                               "item":  {
+                                                            "raw":  "Nordic Fjord King Salmon",
+                                                            "canonical":  "salmon",
+                                                            "entity_resolved":  true
+                                                        },
+                                               "grade":  {
+                                                             "raw":  "B",
+                                                             "tier":  "standard",
+                                                             "grade_resolved":  true
+                                                         },
+                                               "quantity":  {
+                                                                "kg":  14.0,
+                                                                "raw_value":  14.0,
+                                                                "raw_unit":  "kg"
+                                                            },
+                                               "unit_price":  {
+                                                                  "per_kg":  16.5,
+                                                                  "raw_value":  16.5,
+                                                                  "raw_unit":  "kg",
+                                                                  "currency":  "USD"
+                                                              },
+                                               "subtotal":  231.0,
+                                               "source_total":  231.0,
+                                               "checks":  {
+                                                              "subtotal_consistent":  true,
+                                                              "total_matches_source":  true
+                                                          }
+                                           },
+                                           {
+                                               "source_file":  "bay_produce_receipts.xlsx",
+                                               "source_type":  "xlsx",
+                                               "extraction_backend":  "nexla",
+                                               "delivery_id":  "BP-0710-01",
+                                               "delivery_date":  "2026-07-10",
+                                               "delivered_to":  null,
+                                               "best_by_date":  "2026-07-13",
+                                               "certification":  null,
+                                               "supplier":  {
+                                                                "raw":  "Bay Produce",
+                                                                "canonical":  "Bay Produce",
+                                                                "entity_resolved":  true
+                                                            },
+                                               "item":  {
+                                                            "raw":  "Salmon",
+                                                            "canonical":  "salmon",
+                                                            "entity_resolved":  true
+                                                        },
+                                               "grade":  {
+                                                             "raw":  "1",
+                                                             "tier":  "premium",
+                                                             "grade_resolved":  true
+                                                         },
+                                               "quantity":  {
+                                                                "kg":  10.0,
+                                                                "raw_value":  10.0,
+                                                                "raw_unit":  "kg"
+                                                            },
+                                               "unit_price":  {
+                                                                  "per_kg":  18.5,
+                                                                  "raw_value":  18.5,
+                                                                  "raw_unit":  "kg",
+                                                                  "currency":  "USD"
+                                                              },
+                                               "subtotal":  185.0,
+                                               "source_total":  185.0,
+                                               "checks":  {
+                                                              "subtotal_consistent":  true,
+                                                              "total_matches_source":  true
+                                                          }
+                                           },
+                                           {
+                                               "source_file":  "bay_produce_receipts.xlsx",
+                                               "source_type":  "xlsx",
+                                               "extraction_backend":  "nexla",
+                                               "delivery_id":  "BP-0712-01",
+                                               "delivery_date":  "2026-07-12",
+                                               "delivered_to":  null,
+                                               "best_by_date":  "2026-07-15",
+                                               "certification":  null,
+                                               "supplier":  {
+                                                                "raw":  "Bay Produce",
+                                                                "canonical":  "Bay Produce",
+                                                                "entity_resolved":  true
+                                                            },
+                                               "item":  {
+                                                            "raw":  "Salmon",
+                                                            "canonical":  "salmon",
+                                                            "entity_resolved":  true
+                                                        },
+                                               "grade":  {
+                                                             "raw":  "3",
+                                                             "tier":  "economy",
+                                                             "grade_resolved":  true
+                                                         },
+                                               "quantity":  {
+                                                                "kg":  8.0,
+                                                                "raw_value":  8.0,
+                                                                "raw_unit":  "kg"
+                                                            },
+                                               "unit_price":  {
+                                                                  "per_kg":  14.0,
+                                                                  "raw_value":  14.0,
+                                                                  "raw_unit":  "kg",
+                                                                  "currency":  "USD"
+                                                              },
+                                               "subtotal":  112.0,
+                                               "source_total":  112.0,
+                                               "checks":  {
+                                                              "subtotal_consistent":  true,
+                                                              "total_matches_source":  true
+                                                          }
+                                           },
+                                           {
+                                               "source_file":  "bay_produce_receipts.xlsx",
+                                               "source_type":  "xlsx",
+                                               "extraction_backend":  "nexla",
+                                               "delivery_id":  "BP-0715-01",
+                                               "delivery_date":  "2026-07-15",
+                                               "delivered_to":  null,
+                                               "best_by_date":  "2026-07-18",
+                                               "certification":  null,
+                                               "supplier":  {
+                                                                "raw":  "Bay Produce",
+                                                                "canonical":  "Bay Produce",
+                                                                "entity_resolved":  true
+                                                            },
+                                               "item":  {
+                                                            "raw":  "Salmon",
+                                                            "canonical":  "salmon",
+                                                            "entity_resolved":  true
+                                                        },
+                                               "grade":  {
+                                                             "raw":  "1",
+                                                             "tier":  "premium",
+                                                             "grade_resolved":  true
+                                                         },
+                                               "quantity":  {
+                                                                "kg":  12.0,
+                                                                "raw_value":  12.0,
+                                                                "raw_unit":  "kg"
+                                                            },
+                                               "unit_price":  {
+                                                                  "per_kg":  18.5,
+                                                                  "raw_value":  18.5,
+                                                                  "raw_unit":  "kg",
+                                                                  "currency":  "USD"
+                                                              },
+                                               "subtotal":  222.0,
+                                               "source_total":  222.0,
+                                               "checks":  {
+                                                              "subtotal_consistent":  true,
+                                                              "total_matches_source":  true
+                                                          }
+                                           },
+                                           {
+                                               "source_file":  "bay_produce_receipts.xlsx",
+                                               "source_type":  "xlsx",
+                                               "extraction_backend":  "nexla",
+                                               "delivery_id":  "BP-0715-02",
+                                               "delivery_date":  "2026-07-15",
+                                               "delivered_to":  null,
+                                               "best_by_date":  "2026-07-22",
+                                               "certification":  null,
+                                               "supplier":  {
+                                                                "raw":  "Bay Produce",
+                                                                "canonical":  "Bay Produce",
+                                                                "entity_resolved":  true
+                                                            },
+                                               "item":  {
+                                                            "raw":  "Salmon",
+                                                            "canonical":  "salmon",
+                                                            "entity_resolved":  true
+                                                        },
+                                               "grade":  {
+                                                             "raw":  "2",
+                                                             "tier":  "standard",
+                                                             "grade_resolved":  true
+                                                         },
+                                               "quantity":  {
+                                                                "kg":  15.0,
+                                                                "raw_value":  15.0,
+                                                                "raw_unit":  "kg"
+                                                            },
+                                               "unit_price":  {
+                                                                  "per_kg":  16.2,
+                                                                  "raw_value":  16.2,
+                                                                  "raw_unit":  "kg",
+                                                                  "currency":  "USD"
+                                                              },
+                                               "subtotal":  243.0,
+                                               "source_total":  243.0,
+                                               "checks":  {
+                                                              "subtotal_consistent":  true,
+                                                              "total_matches_source":  true
+                                                          }
+                                           }
+                                       ],
+                        "validation":  {
+                                           "total_line_items":  6,
+                                           "unresolved_items":  [
+
+                                                                ],
+                                           "unresolved_suppliers":  [
+
+                                                                    ],
+                                           "unresolved_grades":  [
+
+                                                                 ],
+                                           "total_check_failures":  [
+
+                                                                    ],
+                                           "clean":  true
+                                       }
+                    }
+};
 
 const ZERO_RESOLUTION_EVENTS: ZeroResolutionEvent[] = [
   {
@@ -746,6 +1056,7 @@ export function createInitialDemoState(): DemoState {
     sourceCards: [],
     restaurantContextPreview: [],
     ownerGoal: DEFAULT_OWNER_GOAL,
+    workflowJsonPreview: FALLBACK_WORKFLOW_JSON_PREVIEW,
     workflowPreview: DEFAULT_WORKFLOW_PREVIEW,
     zeroResolutionEvents: getZeroResolutionEvents("PENDING"),
     runTimeline: RUN_TIMELINE_TEMPLATE,
@@ -985,6 +1296,7 @@ export function advanceDemoState(state: DemoState): DemoState {
                 item.id === "files" ? { ...item, status: "MAPPED" } : item,
               ),
         contextVersion: "ctx_v001",
+        workflowJsonPreview: FALLBACK_WORKFLOW_JSON_PREVIEW,
         responseTitle: "POST /api/context/build",
         response: {
           success: true,
@@ -1238,3 +1550,5 @@ export function getStageStatus(phase: DemoPhase, stage: StageId): StageStatus {
 export function isActionDisabled(phase: DemoPhase): boolean {
   return phase === "PATCHED_RECOMMENDATION";
 }
+
+
