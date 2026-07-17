@@ -1,92 +1,84 @@
-const intakeItems = [
-  { label: "Files", detail: "CSV, XLSX, PDF", status: "Ready" },
-  { label: "Email", detail: "Vendor update", status: "Parsed" },
-  { label: "Receipt Photo", detail: "Invoice image", status: "Mapped" },
-  { label: "Voice Note", detail: "Manager note", status: "Queued" },
-];
-
-const sources = [
-  {
-    icon: "S",
-    tone: "tomato",
-    title: "Sales last year",
-    copy: "Weekend item demand, daypart patterns, comparable period.",
-    fields: "8 fields",
-    freshness: "Fresh 10:00 AM",
-  },
-  {
-    icon: "I",
-    tone: "green",
-    title: "Inventory",
-    copy: "On-hand stock, reorder threshold, spoilage risk.",
-    fields: "7 fields",
-    freshness: "Fresh 10:05 AM",
-  },
-  {
-    icon: "P",
-    tone: "amber",
-    title: "Supplier prices",
-    copy: "Delivery speed, reliability, certifications, item price.",
-    fields: "6 fields",
-    freshness: "Fresh 10:10 AM",
-  },
-];
+import type { DemoState, IntakeId } from "../lib/demoState/demoState";
 
 type ConnectViewProps = {
-  phase: DemoPhase;
+  demoState: DemoState;
+  onIntakeSample: (intakeId: IntakeId) => void;
 };
 
-export function ConnectView({ phase }: ConnectViewProps) {
-  const contextBuilt = phase !== "EMPTY";
+export function ConnectView({ demoState, onIntakeSample }: ConnectViewProps) {
+  const contextBuilt = demoState.phase !== "EMPTY";
+  const hasSources = demoState.sourceCards.length > 0;
 
   return (
     <div className="stage-panel active">
       <div className="intake-tray">
-        {intakeItems.map((item) => (
-          <article className="intake-chip" key={item.label}>
-            <span className={contextBuilt ? "status mapped" : "status approval"}>
-              {contextBuilt ? item.status : "Ready"}
+        {demoState.intakeItems.map((item) => (
+          <article className="intake-chip" key={item.id}>
+            <span className={item.status === "READY" ? "status approval" : "status mapped"}>
+              {item.status}
             </span>
             <strong>{item.label}</strong>
             <p>{item.detail}</p>
+            <button
+              className="sample-button"
+              disabled={contextBuilt}
+              onClick={() => onIntakeSample(item.id)}
+              type="button"
+            >
+              {item.sampleAction}
+            </button>
           </article>
         ))}
       </div>
 
-      <div className="source-grid">
-        {sources.map((source) => (
-          <article className="source-card" key={source.title}>
-            <div className="source-top">
-              <span className={`source-icon ${source.tone}`}>{source.icon}</span>
-              <span className={contextBuilt ? "status mapped" : "status approval"}>
-                {contextBuilt ? "Mapped" : "Waiting"}
-              </span>
-            </div>
-            <h3>{source.title}</h3>
-            <p>{source.copy}</p>
-            <div className="metric-row">
-              <strong>{source.fields}</strong>
-              <span>{source.freshness}</span>
-            </div>
-          </article>
-        ))}
-      </div>
+      {hasSources ? (
+        <div className="source-grid">
+          {demoState.sourceCards.map((source) => (
+            <article className="source-card" key={source.id}>
+              <div className="source-top">
+                <span className={`source-icon ${source.tone}`}>{source.icon}</span>
+                <span className={source.status === "MAPPED" ? "status mapped" : "status approval"}>
+                  {contextBuilt ? "Nexla ready" : source.status}
+                </span>
+              </div>
+              <h3>{source.title}</h3>
+              <p>{source.copy}</p>
+              <div className="source-meta">
+                <span>{source.rawInputType}</span>
+                <span>{source.normalizedField}</span>
+              </div>
+              <div className="metric-row">
+                <strong>{source.mappedFields} fields</strong>
+                <span>{source.freshness}</span>
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <div className="empty-source-state">
+          <span className="status approval">Waiting for inputs</span>
+          <h3>No source cards yet</h3>
+          <p>
+            Pick a sample above to show how raw files, email, receipt photos, and voice notes become
+            Nexla-ready Restaurant Context inputs.
+          </p>
+        </div>
+      )}
 
       <div className="context-summary">
         <div>
           <span className="summary-label">Context version</span>
-          <strong>{contextBuilt ? "ctx_v001" : "not built"}</strong>
+          <strong>{contextBuilt ? demoState.contextVersion : "not built"}</strong>
         </div>
         <div>
-          <span className="summary-label">Normalized records</span>
-          <strong>1,654</strong>
+          <span className="summary-label">Source cards</span>
+          <strong>{demoState.sourceCards.length}</strong>
         </div>
         <div>
-          <span className="summary-label">Demo confidence</span>
-          <strong>{contextBuilt ? "Stable fallback" : "Ready to build"}</strong>
+          <span className="summary-label">Build endpoint</span>
+          <strong>/api/context/build</strong>
         </div>
       </div>
     </div>
   );
 }
-import type { DemoPhase } from "../lib/demoState/demoState";

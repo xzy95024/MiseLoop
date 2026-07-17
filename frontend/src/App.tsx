@@ -5,11 +5,13 @@ import { Sidebar } from "./components/Sidebar";
 import { StageCanvas } from "./components/StageCanvas";
 import {
   advanceDemoState,
+  addIntakeSource,
   createInitialDemoState,
   getPrimaryActionLabel,
   resetDemoState,
   setDemoStage,
   STAGE_COPY,
+  type IntakeId,
   type StageId,
 } from "./lib/demoState/demoState";
 
@@ -25,6 +27,10 @@ export function App() {
 
   function handlePrimaryAction() {
     setDemoState((current) => advanceDemoState(current));
+  }
+
+  function handleIntakeSample(intakeId: IntakeId) {
+    setDemoState((current) => addIntakeSource(current, intakeId));
   }
 
   function handleReset() {
@@ -65,6 +71,7 @@ export function App() {
             actionLabel={getPrimaryActionLabel(demoState.phase) || copy.action}
             demoState={demoState}
             kicker={copy.kicker}
+            onIntakeSample={handleIntakeSample}
             onPrimaryAction={handlePrimaryAction}
             stage={stage}
             title={copy.title}
