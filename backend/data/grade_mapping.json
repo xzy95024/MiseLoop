@@ -1,0 +1,20 @@
+{
+  "_comment": "人工定义的品级映射表。三元组 (item, supplier, raw_grade) -> tier。两个供应商的分级习惯之间没有客观换算公式，只能靠业务判断手写。禁止让程序/LLM 推断。新增供应商或品级时，人工在此补充。",
+  "_tiers": ["premium", "standard", "economy"],
+  "mappings": {
+    "salmon": {
+      "Sunny Farm": {
+        "A": "premium",
+        "B": "standard",
+        "C": "economy"
+      },
+      "Bay Produce": {
+        "1": "premium",
+        "2": "standard",
+        "3": "economy",
+        "4": "economy",
+        "5": "economy"
+      }
+    }
+  }
+}
