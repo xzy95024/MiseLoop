@@ -124,6 +124,6 @@ def rerun_workflow(workflow_id: str, body: dict[str, Any]) -> dict[str, Any]:
         message="Context diff applied and recommendation patched.",
         data=data,
         request_prefix="req_workflow_rerun",
-        dependency_mode={"zero": "fixture", "nexla": "fixture"},
+        dependency_mode=data.get("dependency_mode", {"workflow_runner": "fixture"}),
         context_version=body.get("new_context_version"),
     )

@@ -85,7 +85,12 @@ def test_api_shell_demo_flow():
         json={"previous_run_id": "run_001", "new_context_version": "ctx_v002"},
     )
     assert rerun.status_code == 200
-    assert rerun.json()["data"]["status"] == "PATCHED_RECOMMENDATION"
+    rerun_body = rerun.json()
+    assert rerun_body["data"]["status"] == "PATCHED_RECOMMENDATION"
+    assert rerun_body["data"]["context_diff_applied"] is True
+    assert rerun_body["data"]["recommendation_diff"][0]["field"] == "supplier.tomato.primary"
+    assert rerun_body["data"]["recommendation"]["expected_impact"]["estimated_cost_savings"] == 168.2
+    assert rerun_body["meta"]["dependency_mode"]["workflow_runner"] == "fixture"
 
     dashboard = client.get("/api/dashboard")
     assert dashboard.status_code == 200

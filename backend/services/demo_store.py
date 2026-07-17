@@ -14,7 +14,7 @@ from uuid import uuid4
 
 from .nexla_context_provider import NexlaContextProvider
 from .workflow_generator import DEFAULT_WORKFLOW_ID, DeterministicWorkflowGenerator
-from .workflow_runner import RECOMMENDATION, WorkflowRunner
+from .workflow_runner import WorkflowRunner
 from .zero_capability_provider import ZeroCapabilityProvider
 
 
@@ -37,42 +37,6 @@ CONTEXT_DIFF = [
         "impact": "Vendor B becomes the safer weekend recommendation.",
     },
 ]
-
-
-RECOMMENDATION_DIFF = [
-    {
-        "field": "supplier.tomato.primary",
-        "label": "Tomato supplier",
-        "before": "Vendor A",
-        "after": "Vendor B",
-        "reason": "Vendor A tomato price increased from 2.10 to 2.85.",
-    },
-    {
-        "field": "purchase_plan.estimated_savings",
-        "label": "Estimated savings",
-        "before": "$143.50",
-        "after": "$168.20",
-        "reason": "Switching tomatoes to Vendor B improves weekend cost profile.",
-    },
-]
-
-
-PATCHED_RECOMMENDATION = {
-    **RECOMMENDATION,
-    "summary": "Supplier price changed. Loop reran the workflow and switched tomatoes to Vendor B.",
-    "expected_impact": {
-        **RECOMMENDATION["expected_impact"],
-        "estimated_cost_savings": 168.20,
-    },
-    "plan_items": [
-        {
-            "item": "Tomatoes",
-            "action": "Switch to Vendor B",
-            "reason": "Vendor A price increased to $2.85 while Vendor B remains more reliable.",
-        },
-        *RECOMMENDATION["plan_items"][1:],
-    ],
-}
 
 
 def utc_now() -> str:
@@ -216,20 +180,23 @@ class DemoStore:
         }
 
     def rerun_workflow(self, workflow_id: str) -> dict[str, Any]:
+        result = self.workflow_runner.rerun(
+            workflow_id=workflow_id,
+            previous_run_id=self.state.get("run_id"),
+            new_context_version=self.state["context"].get("version"),
+            context_diff=self.state["context"].get("last_diff", []),
+        )
         self.state["workflow_id"] = workflow_id
-        self.state["workflow_status"] = "PATCHED_RECOMMENDATION"
-        self.state["run_id"] = "run_002"
-        self.state["recommendation"] = deepcopy(PATCHED_RECOMMENDATION)
+        self.state["workflow_status"] = result["status"]
+        self.state["run_id"] = result["run_id"]
+        self.state["recommendation"] = deepcopy(result["recommendation"])
         self.state["metrics"]["workflow_runs"] = 2
-        self.state["metrics"]["self_corrections"] = 1
-        self.state["metrics"]["estimated_cost_savings"] = 168.20
-        return {
-            "run_id": "run_002",
-            "status": "PATCHED_RECOMMENDATION",
-            "context_diff_applied": True,
-            "recommendation_diff": deepcopy(RECOMMENDATION_DIFF),
-            "recommendation": deepcopy(PATCHED_RECOMMENDATION),
-        }
+        self.state["metrics"]["self_corrections"] = 1 if result["context_diff_applied"] else 0
+        self.state["metrics"]["estimated_cost_savings"] = result["recommendation"][
+            "expected_impact"
+        ]["estimated_cost_savings"]
+        self.state["dependency_mode"].update(result["dependency_mode"])
+        return result
 
     def _initial_state(self) -> dict[str, Any]:
         return {

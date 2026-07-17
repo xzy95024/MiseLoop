@@ -36,6 +36,42 @@ RECOMMENDATION = {
 }
 
 
+RECOMMENDATION_DIFF = [
+    {
+        "field": "supplier.tomato.primary",
+        "label": "Tomato supplier",
+        "before": "Vendor A",
+        "after": "Vendor B",
+        "reason": "Vendor A tomato price increased from 2.10 to 2.85.",
+    },
+    {
+        "field": "purchase_plan.estimated_savings",
+        "label": "Estimated savings",
+        "before": "$143.50",
+        "after": "$168.20",
+        "reason": "Switching tomatoes to Vendor B improves weekend cost profile.",
+    },
+]
+
+
+PATCHED_RECOMMENDATION = {
+    **RECOMMENDATION,
+    "summary": "Supplier price changed. Loop reran the workflow and switched tomatoes to Vendor B.",
+    "expected_impact": {
+        **RECOMMENDATION["expected_impact"],
+        "estimated_cost_savings": 168.20,
+    },
+    "plan_items": [
+        {
+            "item": "Tomatoes",
+            "action": "Switch to Vendor B",
+            "reason": "Vendor A price increased to $2.85 while Vendor B remains more reliable.",
+        },
+        *RECOMMENDATION["plan_items"][1:],
+    ],
+}
+
+
 class WorkflowRunner:
     def run(
         self,
@@ -60,6 +96,28 @@ class WorkflowRunner:
             "status": "COMPLETED_WITH_RECOMMENDATION",
             "timeline": timeline,
             "recommendation": deepcopy(RECOMMENDATION),
+            "dependency_mode": {"workflow_runner": "fixture"},
+        }
+
+    def rerun(
+        self,
+        *,
+        workflow_id: str,
+        previous_run_id: str | None,
+        new_context_version: str | None,
+        context_diff: list[dict[str, Any]],
+    ) -> dict[str, Any]:
+        recommendation = self._patch_recommendation(context_diff)
+        return {
+            "workflow_id": workflow_id,
+            "previous_run_id": previous_run_id,
+            "run_id": "run_002",
+            "status": "PATCHED_RECOMMENDATION",
+            "context_version": new_context_version,
+            "context_diff_applied": bool(context_diff),
+            "context_diff": deepcopy(context_diff),
+            "recommendation_diff": self._recommendation_diff(context_diff),
+            "recommendation": recommendation,
             "dependency_mode": {"workflow_runner": "fixture"},
         }
 
@@ -117,3 +175,13 @@ class WorkflowRunner:
             "summary": "Workflow step completed.",
             "evidence": step.get("type", "workflow"),
         }
+
+    def _patch_recommendation(self, context_diff: list[dict[str, Any]]) -> dict[str, Any]:
+        if not context_diff:
+            return deepcopy(RECOMMENDATION)
+        return deepcopy(PATCHED_RECOMMENDATION)
+
+    def _recommendation_diff(self, context_diff: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        if not context_diff:
+            return []
+        return deepcopy(RECOMMENDATION_DIFF)
